@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: rate-limiter-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/limited/**, /api/v1/free/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: rateLimiterCircuitBreaker
+                fallbackUri: forward:/fallback/rate-limiter
+                
+        - id: distributed-lock-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/orders/**
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

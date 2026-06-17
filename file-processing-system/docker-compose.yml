@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+    volumes:
+      - ./localstack-init:/etc/localstack/init/ready.d
+
+  app:
+    build: .
+    ports:
+      - "8083:8083"
+    depends_on:
+      - localstack
